@@ -1,0 +1,15 @@
+ REGEDIT4
+
+ [HKEY_LOCAL_MACHINE\Software\Microsoft\Windows NT\CurrentVersion\FontLink\SystemLink]
+ "Lucida Sans Unicode"="SourceHanSansCN-Medium.otf"
+ "Microsoft Sans Serif"="SourceHanSansCN-Medium.otf"
+ "Microsoft YaHei"="SourceHanSansCN-Medium.otf"
+ "微软雅黑"="SourceHanSansCN-Medium.otf"
+ "MS Sans Serif"="SourceHanSansCN-Medium.otf"
+ "Tahoma"="SourceHanSansCN-Medium.otf" 
+ "Tahoma Bold"="SourceHanSansCN-Medium.otf"
+ "SimSun"="SourceHanSansCN-Medium.otf"
+ "Arial"="SourceHanSansCN-Medium.otf"
+ "Arial Black"="SourceHanSansCN-Medium.otf"
+ "宋体"="SourceHanSansCN-Medium.otf"
+ "新細明體"="SourceHanSansCN-Medium.otf"

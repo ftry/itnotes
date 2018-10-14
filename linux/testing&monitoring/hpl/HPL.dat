@@ -1,0 +1,30 @@
+HPL.out      #output file name (if any)  //输出文件名，同下一行一起设定
+6            device out (6=stdout,7=stderr,file)  //6标准输出，7标准错误输出，file可以设定为保存至特定文件，文件名上一行设定
+4            # of problems sizes (N)//选择测试规模的数量
+29 30 34 35  Ns   //计算规模的大小,一般规模越大，得出的结果越优，但规模越大，占用的内存也就越大，对系统造成的影响也越明显。所以，一般根据实际物理内存大小进行计算：N*N*8=内存总量*0.8
+1            # of NBs //分块矩阵的数量
+1 2 3 4      NBs //分块矩阵的大小，HPL采用分块矩阵的算法。分块的大小对性能有很大的影响，NB的选择和软硬件许多因素密切相关。NB值的选择主要是通过实际测试得到最优值，一般在256以下，NB × 8最好为
+Cache line的倍数。
+0 PMAP process mapping (0=Row-,1=Column-major)  //选择处理器阵列是列的排列方式还是按行的排列方式。按列的排列方式适用于节点数较多、每个节点内CPU数较少的系统；而按行的排列方式适用于节点数较少、每个节点内CPU数较多系统。在机群系统上，按列的排列方式的性能远好于按行的排列方式。
+1            # of process grids (P x Q) //选择测试线程类型的数量
+1 1 4        Ps
+1 4 1        Qs    //二维处理器网格（P × Q），P × Q = 系统CPU数 = 进程数。P≤Q，一般来说，P的值尽量取得小一点，因为列向通信量（通信次数和通信数据量）要远大于横向通信（和实际CPU物理阵列有关）。P = 2n，即P最好选择2的幂。HPL中，L分解的列向通信采用二元交换法（Binary Exchange），当列向处理器个数P为2的幂时，性能最优。例如，当系统进程数为4的时候，P × Q选择为1 × 4的效果要比选择2 × 2好一些。 这主要取决于CPU物理互联网络。在集群测试中，P × Q  系统CPU总核数
+16.0         threshold   //测试的精度，保持默认即可
+1            # of panel fact  //选PFACTS算法的方式，可以进行试验进行选择
+0 1 2        PFACTs (0=left, 1=Crout, 2=Right)// 用PFACTs算法对nn列作消元
+2            # of recursive stopping criterium //选择NBMINS的值，递归L分解
+2 4          NBMINs (>= 1) //设定NBMINS的值，一般推荐2、4、8
+1            # of panels in recursion  //选择NDIVS的值
+2            NDIVs  //设定NDIVS的值
+1            # of recursive panel fact.  //选择PFACTs算法
+0 1 2        RFACTs (0=left, 1=Crout, 2=Right)
+1            # of broadcast    //选择L的横向广播方式
+0            BCASTs (0=1rg,1=1rM,2=2rg,3=2rM,4=Lng,5=LnM)  // HPL提供六种广播方式。其中前四种适合于快速网络；后两种采用将数据切割后传送的方式，主要适合于速度较慢的 网络。前四种算法，分别采用单环/双环、第一列处理器不优先/优先。 01234567t=0t=1t=2t=3t=4t=5t=6t=70)Increasing-ring:单环,不优先01234567t=0,1t= 2t=3t=4t=5t=6t=71)Increasing-ring(M):单环,优先01234567t=0,1t=1t=2t=3t=2t=3t= 4t=52)Increasing-2-ring:双环,不优先01234567t=0,1,2t=2t=3t=3t=4t=5t=63) Increasing-2-ring(M):双环,优先。对于系统规模较小、处理器数（进程数）较少的系统来说，这四个选择对性能影响很小。对于横向处理器数Q较大的网络来来说，选择双环可以减少横向通信宽度，较小横向通信延迟。另外，第一列处理器优先算法也可以确保下一次L分解的尽早开始。在小规模系统中，一般选择0或1；对于大规模系统，一般选3
+1            # of lookahead depth //选择横向通信的通信深度
+0            DEPTHs (>=0)  // DEPTHs＝0表明将L一次性广播出去，也就是将整个L分解完成以后在一次性广播； DEPTHs＝1表示将L分两次广播；依此类推.小规模系统中，DEPTHs一般选择1或2；对于大规模系统，选择2～5之间
+2            SWAP (0=bin-exch,1=long,2=mix)
+64           swapping threshold  // U的广播为列向广播，HPL共提供了三种U的广播算法：二元交换（Binary Exchange）法、Long法和二者混合法。SWAP=“0”，采用二元交换法；SWAP=“1”，采用Long法；SWAP=“2”，采用混合法。二元交换法的通信开销为㏒2P×（Latency＋NB×LocQ（N）/Bandwith），适用于通信量较小的情况；Long法的通信开销为（㏒2P＋ P－1）×Latency＋K×NB×LocQ（N）/Bandwith，适用于通信量较大的情况。其中P为列向处理器数，Latency为网络延迟， Bandwith为网络带宽，K为常数，其经验值约为2.4。LocQ（N）＝NB×NN为通信量，NN随着求解过程的进行逐步减少。由于NN在求解过程中在不断的变化，为了充分发挥两种算法的优势，HPL提供了混合法，当NN≤swapping threshold（第27行指定）时，采用二元交换；否则采用Long法。一般来说，我们选择混合法，阈值可通过公式求得一个大概值。对于小规模系统来说，此值性能影响不大，采用其缺省值即可。
+0            L1 in (0=transposed,1=no-transposed) form  //选择L的数据存放方式
+0          U  in (0=transposed,1=no-transposed) form   //选择U的数据存放格式。C语言矩阵在内存是按行存放的，Fortran语言是按列存放的。由于HPL采用C语言书写，而调用的BLAS库有可能采用C语言，也有可能采用Fortran语言编写。若选择“transposed”，则采用按列存放，否则按行存放。可以根据实际测试进行选择。
+1            Equilibration (0=no,1=yes)  //选择是否回代，默认即可
+8            memory alignment in double (> 0)  // 内存分配中作地址对齐,根据实际测试结果选择

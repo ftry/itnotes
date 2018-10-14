@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Directory</title>
+  <style>
+    html {
+      font-size: 62.5%;
+    }
+
+    body {
+      font-family: "lucida grande", "lucida sans unicode", lucida, helvetica, "Hiragino Sans GB","PingFang SC", "Microsoft YaHei", "Source Han Sans CN Medium","Noto Sans CJK SC Medium","WenQuanYi Micro Hei", sans-serif;
+      font-size: 2.4rem;
+      background-color:rgba(221, 240, 237, 0.83);
+    }
+    /* body::first-line是页面顶部显示的路径内容 */
+
+    body::first-line {
+      color: #750C28;
+      font-weight: bold;
+      font-size: 2.6rem;
+    }
+    /* id为list的table元素是整个列表 */
+
+    #list {
+      margin: auto;
+    }
+    /* File Name文字 在#list这个table下thead元素下的tr元素内的第一个th元素中的a元素内。依次类推	File Size第二个 	Date  第三个 */
+
+    #list thead tr th {
+      text-align: left;
+      width: auto !important;
+    }
+
+    #list thead tr th:first-child a {
+      color: rgb(34, 95, 207);
+    }
+
+    #list thead tr th:nth-child(2) a {
+      color: hsl(162, 77%, 24%);
+    }
+
+    #list thead tr th:nth-child(3) a {
+      color: rgb(70, 8, 78);
+    }
+    /* 对应的，每个文件的名字是tbody元素下的tr元素内的td元素中的a元素内，文件的大小和日期是第二个tr和第三个tr*/
+    #list tbody tr td{
+      padding: 0.2rem;
+    }
+
+    #list tbody tr td:first-child a {
+      text-decoration: none;
+    }
+    a:link{
+     color:rgba(51, 45, 45, 0.93);
+    }
+    a:visited{
+      color:rgb(97, 61, 16)
+    }
+    a:hover{
+      color:rgba(194, 58, 189, 0.88);
+    }
+    a:active{
+      color:#3367BB;
+    }
+    /* 移动端适配 */
+
+    @media screen and (max-width:480px) {
+      body {
+        font-size: 1.6rem;
+        background-color: rgba(205, 223, 238, 0.72);
+      }
+      body::first-line {
+        font-size: 2rem;
+      }
+      #list thead tr th {
+      font-size: 1.4rem;
+    }
+    }
+  </style>
+</head>
+
+<body>
+  <!-- 剩余的部分在footer.html文件中 -->
