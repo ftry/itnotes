@@ -9,3 +9,6 @@
   xdg-open http://localhost #使用默认浏览器访问http://localhost
   xdg-open testfile  #使用默认编辑器打开testfile文件
   ```
+
+- 退出shell不保存此次操作历史到history
+  - `kill -9 $$`

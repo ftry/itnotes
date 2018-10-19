@@ -31,7 +31,7 @@ networkstate=`curl z.cn`
 #查找进程中是否已经存在指定进程
 tunnelstate=`ps aux | grep ${remotePort} | grep ssh | grep -v grep`
 
-if [[ -z "$networkstate" && -z "$tunnelstate" ]] #网络是通的
+if [[ -n "$networkstate" && -z "$tunnelstate" ]] #网络是通的
 then
   ssh -i ${key} -fCNR ${proxyPort}:${localAddr}:${localPort} ${remoteUser}@${remoteAddr} -p ${remotePort}
 fi

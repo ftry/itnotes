@@ -69,7 +69,7 @@ shell扩展安装来源：
    附 media player indicator设置中l展示播放信息的pango设置示例：
 
    ```html
-   <span foreground="#eb3f2f">{trackTitle}</span> --> <span 		foreground="#81c2d6">{trackAlbum}</span> @ <span foreground="#c3bed4">{trackArtist}</span>
+   <span foreground="#eb3f2f">{trackTitle}</span> --> <span foreground="#81c2d6">{trackAlbum}</span> @ <span foreground="#c3bed4">{trackArtist}</span>
    ```
 
 # 主题外观

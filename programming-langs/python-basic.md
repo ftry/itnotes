@@ -1,4 +1,41 @@
 [TOC]
+# 环境变量
+
+```shell
+export PATH=/path-to-python/bin:$PATH
+export PYTHONPATH=/path-to-python/lib/python*/site-packages
+```
+
+| 变量名        | 描述                                                         |
+| ------------- | ------------------------------------------------------------ |
+| PYTHONPATH    | PYTHONPATH是Python搜索路径，默认import的模块都从PYTHONPATH里面寻找。 |
+| PYTHONSTARTUP | Python启动后，先寻找PYTHONSTARTUP环境变量，然后执行此变量指定的文件中的代码。 |
+| PYTHONCASEOK  | 加入PYTHONCASEOK的环境变量, 就会使python导入模块的时候不区分大小写. |
+| PYTHONHOME    | 另一种模块搜索路径。它通常内嵌于的PYTHONSTARTUP或PYTHONPATH目录中，使得两个模块库更容易切换。 |
+
+- Python搜索模块的路径的先后顺序：
+  1. 当前程序的主目录
+  2. PYTHONPATH目录
+  3. 标准连接库目录（一般在`/usr/local/lib/python*`）
+  4. 任何的.pth文件的内容（如果存在的话），允许用户把有效果的目录添加到模块搜索路径中去.pth后缀的文本文件中一行一行的地列出目录。
+
+```shell
+pip show 模块名  #查看某个模块的安装路径
+```
+
+- 指定pip安装目录
+
+  - 在用户家目录建立`.pip.conf`指定模块安装位置
+
+    ```shell
+    [install]
+    install-option=--prefix=~/.local  #安装到~/.local
+    ```
+
+  - `pip install --user paramiko`指定其安装到家目录下。
+
+  - `pip install --install-option="--install-purelib=/python/packages" package_name`
+
 # 基础语法
 
 ## 书写格式
@@ -528,4 +565,5 @@ from __future__ import division
   pattern表示正则表达式，string表示原始字符串，flags表示特殊功能。
 
 - 替换
+
   - sub
