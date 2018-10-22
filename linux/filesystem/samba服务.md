@@ -1,10 +1,10 @@
-本文基于centos7.x，其余发行版或有出入。
-
-[TOC]
+Samba一种支持[SMB/CIFS](https://zh.wikipedia.org/wiki/%E4%BC%BA%E6%9C%8D%E5%99%A8%E8%A8%8A%E6%81%AF%E5%8D%80%E5%A1%8A)（Server Message Block/Common Internet File System）协议的文件共享工具。
 
 # 服务端
 
-安装`samba`，启用`smb`和`nmb`服务（提示：根据发行版不同，服务名也可能是`smbd`和`nmbd`)。
+## 安装
+
+安装`samba`，启用`smb`和`nmb`服务（或名`smbd`或`nmbd`）。
 
 ## 配置
 

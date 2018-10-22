@@ -1,7 +1,6 @@
-个人笔记，便于查阅。
 目录结构
----
 ```
+---
 ├── algorithm
 ├── app-skills
 ├── database
@@ -16,8 +15,7 @@
 │   │   │   ├── bluetooth
 │   │   │   ├── default
 │   │   │   ├── fonts
-│   │   │   │   ├── conf.avail
-│   │   │   │   └── vim
+│   │   │   │   └── conf.avail
 │   │   │   ├── modprobe.d
 │   │   │   ├── pulse
 │   │   │   ├── sysctl.d
@@ -27,10 +25,10 @@
 │   │   │   └── xrdp
 │   │   └── userhome
 │   ├── desktop-environment
+│   ├── filesystem
 │   ├── network
 │   │   └── ssh
 │   ├── shell&command-line-tools
-│   ├── storage&filesystem
 │   ├── system-maintain
 │   ├── testing&monitoring
 │   │   └── hpl
@@ -56,5 +54,5 @@
 └── windows
     └── reg-files
 
-53 directories
+52 directories
 ```

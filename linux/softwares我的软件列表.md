@@ -424,7 +424,13 @@
     - gnome-schedule
     - fcronq
     - gcrontab
-- etckeeper  使用版本控制备份etc目录
+- 数据备份
+  - backintime
+  - timeshift
+  - etckeeper  使用版本控制工具备份etc目录
+- [微码](https://wiki.archlinux.org/index.php/Microcode_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))更新
+  - intel-ucode
+  - amd-ucode
 ##  安全
 
 - 防火墙
@@ -433,13 +439,10 @@
 - 反病毒
   - clamav  病毒扫描
     - clamtk    图形界面的clamav
-- backintime    备份工具
 - 数据加密
   - truecrypt    跨平台的硬盘加密工具
   - veracrypt    加密硬盘 基于TrueCrypt
   - cryptsetup    加密硬盘（命令行）
-- [微码](https://wiki.archlinux.org/index.php/Microcode_(%E7%AE%80%E4%BD%93%E4%B8%AD%E6%96%87))更新
-  - intel-ucode
 
 ## 个性化设置
 

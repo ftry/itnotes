@@ -1,9 +1,9 @@
 #!/bin/sh
-# By Levin   levinit.github.io
-# If not running interactively, don't do anything
+#By Levin   levinit.github.io
+#If not running interactively, don't do anything
 [[ $- != *i* ]] && return
 
-# ******** Default display ********
+#******** Default display ********
 #PS1="[\u @ \h > \w ] \$ "
 
 innerip=`ip addr | grep -o -P '1[^2]?[0-9]?(\.[0-9]{1,3}){3}(?=\/)'`
@@ -21,11 +21,8 @@ echo -e "\e[36mHello, \e[1m`whoami`\e[0m
 \e[1mplay [filename]\e[0m:   play recordfile
 \e[37m+++++=====\e[0m\e[37;5mLet's Begin\e[0m\e[37m====+++++\e[0m"
 
-#recordfile=`date +%Y%m%d-%H%M`
-#asciinema rec $recordfile
-
-# ******** PATH ********
-# proxy | use privoxy transfer socks5 to http
+#******** PATH ********
+#proxy | use privoxy transfer socks5 to http
 #export ALL_PROXY="socks5://127.0.0.1:1080"
 #export no_proxy=
 #export ftp_proxy=
@@ -40,67 +37,68 @@ alias proxyoff="unset https_proxy;unset https_proxy"
 
 # ----- device&system -----
 
-# trim for ssd
+#trim for ssd
 alias trim='sudo fstrim -v /home && sudo fstrim -v /'
 
-# mount win
-alias win='sudo ntfs-3g /dev/sda4 /mnt/windows'
+#mount win
+alias win='sudo ntfs-3g /dev/sda3 /mnt/windows'
 
-# ---power---
+#---power---
 
 alias hs='systemctl hybrid-sleep'
 alias hn='systemctl hibernate'
 alias sp='systemctl suspend'
 alias pf='systemctl poweroff'
 
+#no network save power
+alias nonetwork='killall syncthing syncthing-gtk megasync smb nmb telegram-desktop workrave' #ss-qt5
+
 # powertop
 alias powertopauto='sudo powertop --auto-tune'
 
-# tlp
+#tlp
 alias tlpbat='sudo tlp bat'
 alias tlpac='sudo tlp ac'
 alias tlpcputemp='sudo tlp-stat -t'
 
-# battery
+#battery info
 alias batsate='cat /sys/class/power_supply/BAT0/capacity'
 
-# CPU
+#CPU freq
 alias cpuwatch='watch cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq'
 
-# ----GPU---
+#----GPU---
 alias nvidiaoff='sudo tee /proc/acpi/bbswitch <<<OFF'
 alias nvidiaon='sudo tee /proc/acpi/bbswitch <<<ON'
 alias nvidiasettings='sudo optirun -b none nvidia-settings -c :8'
 
-# ---audio---
-# beep
+#---audio---
+#beep
 alias beep='sudo rmmod pcspkr && sudo echo "blacklist pcspkr" > /etc/modprobe.d/nobeep.conf'
 
-# ---wireless---
+#---wireless---
 
 #bluetooth
 alias bluetoothon='sudo systemctl start bluetooth'
 alias bluetoothoff='sudo systemctl stop bluetooth'
 
-# ---print---
+#---print---
 alias printer='sudo systemctl start org.cups.cupsd.service'
 
-# atd
-alias atd='systemctl start atd'
+#===system commands===
 
-# tree
-alias tree='tree -C -L 1 --dirsfirst'
-
-# ===system===
-
-# Arch
+#---Arch Linux---
+#aur helper
 alias up='yay'
-alias pacman='sudo pacman'
-alias orphan='pacman -Rscn $(pacman -Qtdq)' 
 
+#pacman
+alias pacman='sudo pacman'
+alias orphan='pacman -Rscn $(pacman -Qtdq)'
+
+#makepkg aur packing
 alias aurinfo='makepkg --printsrcinfo > .SRCINFO && git status'
 
-# temporary locale
+#---temporary locale---
 alias x='export LANG=en_US.UTF-8 LC_CTYPE=en_US.UTF-8 LC_MESSAGES=en_US.UTF-8 && startx'
 alias xtc='export LANG=zh_TW.UTF-8 LC_CTYPE=zh_TW.UTF-8 LC_MESSAGES=zh_TW.UTF-8 && startx'
 alias xsc='export LANG=zh_CN.UTF-8 LC_CTYPE=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8 && startx'
@@ -108,29 +106,32 @@ alias xsc='export LANG=zh_CN.UTF-8 LC_CTYPE=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8 
 alias cn='export LANG=zh_CN.UTF-8 LC_CTYPE=zh_CN.UTF-8 LC_MESSAGES=zh_CN.UTF-8'
 alias en='export LANGUAGE=en_US.UTF-8'
 
-# file operation
+#---file operation---
+
 alias ls='ls --color=auto'
-alias rm='mv -f --target-directory=/home/levin/.local/share/Trash/files/'
 alias ll='ls -lh'
 alias la='ls -lah'
+
+alias rm='mv -f --target-directory=/home/levin/.local/share/Trash/files/'
+
 alias cp='cp -i'
+
 alias grep='grep --color'
 
-#web server
-alias np='sudo systemctl start nginx php-fpm'
-alias nginxstart='sudo systemctl start nginx'
-alias npre='sudo systemctl restart nginx php-fpm'
-alias npstop='sudo systemctl stop nginx php-fpm'
-alias nmp='sudo systemctl start nginx mariadb php-fpm'
-alias nmpre='sudo systemctl restart nginx mariadb php-fpm'
-alias nmpstop='sudo systemctl stop nginx mariadb php-fpm'
+alias tree='tree -C -L 1 --dirsfirst'
+
+alias atd='systemctl start atd'
+
+# ===common tools short commands===
+#backup important files
+alias backup="\cp -f ~/.bashrc ~/.gitconfig ~/.vimrc ~/.fonts.conf ~/.makepkg.conf ~/.bash-powerline.sh -t ~/Documents/it/itnotes/linux/config-backup/userhome/"
+
+#---network---
+# proxychains
+alias px='proxychains'
 
 # ssh server
 alias sshstart='sudo systemctl start sshd'
-
-#asciinema
-alias rec='asciinema rec -i 5 terminal-`date +%Y%m%d-%H%M%S`'
-alias play='asciinema play'
 
 # update hosts
 alias hosts='sudo curl -# -L -o /etc/hosts https://raw.githubusercontent.com/googlehosts/hosts/master/hosts-files/hosts'
@@ -145,13 +146,23 @@ alias privoxystart='sudo systemctl start privoxy'
 alias privoxyrestart='sudo systemctl restar privoxy'
 alias privoxyrestop='sudo systemctl stop privoxy'
 
-#proxychains
-alias px='proxychains'
+#---nmap
+#scan alive hosts
+alias 'nmap-hosts'="sudo nmap `echo $gateway|cut -d '.' -f 1-3`.0/24"
 
-# iconv -- file content encoding
-alias iconvgbk='iconv -f GBK -t UTF-8' 
-# convmv -- filename encoding
+#install/update geoip database
+alias geoipdata="cd /tmp && wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz && wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz && wget http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz && gunzip GeoIP.dat.gz && gunzip GeoIPASNum.dat.gz && gunzip GeoLiteCity.dat.gz && sudo cp GeoIP.dat GeoIPASNum.dat GeoLiteCity.dat /usr/share/GeoIP/ && cd -"
+
+#---convert tools----
+
+#iconv -- file content encoding
+alias iconvgbk='iconv -f GBK -t UTF-8'
+#convmv -- filename encoding
 alias convmvgbk='convmv -f GBK -T UTF-8 --notest --nosmart'
+
+#asciinema record terminal
+alias rec='asciinema rec -i 5 terminal-`date +%Y%m%d-%H%M%S`'  #record
+alias play='asciinema play'  #play record file
 
 #teamviwer
 alias tvstart='sudo systemctl start teamviewerd.service'
@@ -159,38 +170,23 @@ alias tvstart='sudo systemctl start teamviewerd.service'
 #docker
 alias dockerstart='sudo systemctl start docker'
 
-# youdao dict 有道词典
-alias yd='ydcv'
-
-# install/update geoip database
-alias geoipdata="cd /tmp && wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCountry/GeoIP.dat.gz && wget http://geolite.maxmind.com/download/geoip/database/GeoLiteCity.dat.gz && wget http://download.maxmind.com/download/geoip/database/asnum/GeoIPASNum.dat.gz && gunzip GeoIP.dat.gz && gunzip GeoIPASNum.dat.gz && gunzip GeoLiteCity.dat.gz && sudo cp GeoIP.dat GeoIPASNum.dat GeoLiteCity.dat /usr/share/GeoIP/ && cd -"
-
-# libvirtd
+#libvirtd
 alias virt='sudo modprobe virtio && sudo systemctl start libvirtd'
 
-#--for fun--
-# cmatrix
-alias matrix='cmatrix'
+#youdao dict 有道词典
+alias yd='ydcv'
 
-# starwar
-alias starwar='telnet towel.blinkenlights.nl'
-
-#aquarium
-alias aquarium='asciiaquarium'
-
-# npm -g list --depth=0
+#npm -g list --depth=0
 alias npmlistg='sudo npm -g list --depth=0'
 
-# stocks
-alias stock="curl -s http://hq.sinajs.cn/list=sz000066|iconv -f gbk -t utf8|cut -d ',' -f 4 && curl -s http://hq.sinajs.cn/list=sz000670|iconv -f gbk -t utf8|cut -d ',' -f 4 && curl -s http://hq.sinajs.cn/list=sh600555|iconv -f gbk -t utf8|cut -d ',' -f 4"
+#---for fun---
+#cmatrix
+alias matrix='cmatrix'
 
-# no network
+#starwar
+alias starwar='telnet towel.blinkenlights.nl'
 
-alias nonetwork='killall syncthing syncthing-gtk megasync evolution nextcloud telegram-desktop workrave' #ss-qt5
+#=======
 
-#---nmap
-#scan alive hosts
-alias 'nmap-hosts'="sudo nmap `echo $gateway|cut -d '.' -f 1-3`.0/24"
-
-# bash-powerline : https://github.com/riobard/bash-powerline
+#bash-powerline : https://github.com/riobard/bash-powerline
 source ~/.bash-powerline.sh

@@ -367,6 +367,17 @@ docker run <container> <command>
   - stop 停用容器
   - kill  发送 SIGKILL 快速停止容器
 
+## 文件交换
+
+复制
+
+```shell
+docker cp <宿主机文件路径> <容器名>:<容器内目标路径>
+docker cp <容器名>:<容器内目标路径> <宿主机文件路径> 
+```
+
+
+
 # 网络
 
 docker的网络有默认和自定义两种，可在创建/启动容器时指定以下的网络。
@@ -411,8 +422,3 @@ docker默认创建三种网络类型：bridge、host和none。创建容器时可
 
 # 存储
 
-## 复制
-
-```shell
-docker cp <宿主机文件路径> <容器名>:<容器内目标路径>
-```
