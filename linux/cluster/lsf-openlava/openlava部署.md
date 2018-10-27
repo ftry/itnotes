@@ -29,7 +29,7 @@ rm Makefile* *.in -f
   dest=/otp/openlava
   
   #创建运行openlava的用户
-  useradd -rM -s /sbin/nologin openlava
+  useradd -M -s /sbin/nologin openlava
   chown -R openlava:openlava $dest
   
   #环境变量
@@ -56,7 +56,7 @@ rm Makefile* *.in -f
   #yourhost IntelI5    linux   1      3.5    (cs)
   #node1       !       linux   1      3.5    (cs)
   master       !      linux    1      3.5    (cs) 
-  default      !      linux    1      3.5    (cs)
+  c01          !      linux    1      3.5    (cs)
   End     Host
   ```
 
