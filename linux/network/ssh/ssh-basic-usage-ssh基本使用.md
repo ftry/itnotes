@@ -2,17 +2,19 @@
 
 # 常用参数
 
-- p：指定要连接的远程主机的端口
-- f：成功连接ssh后将指令放入后台执行
-- C：请求压缩所有数据
-- N：不登陆到远程主机
-- D：动态端口转发
-- R：远程端口转发
-- L：本地端口转发
-- g：允许连接到主机转发的端口。相当于临时设置`sshd_config`文件中的`GatewayPorts yes`
-- T：不分配TTY
-- q：安静模式（不输出错误/警告）
-- -v：显示详细信息（可用于排错）
+- `p`：指定要连接的远程主机的端口
+- `f`：成功连接ssh后将指令放入后台执行
+- `C`：请求压缩所有数据
+- `N`：不执行远程命令（不登录到服务器执行命令）
+- `D`：动态端口转发
+- `R`：远程端口转发
+- `L`：本地端口转发
+- `g`：（配合端口转发）允许远程主机连接到建立的转发的端口（不使用该参数则只允许本地主机建立连接）
+- `-t`：强制分配伪终端（可以用来执行任意的远程计算机上基于屏幕的程序）
+- `T`：不分配TTY
+- `A`：开启身份认证代理转发
+- `q`：安静模式（不输出错误/警告）
+- `-v`：显示详细信息（可用于排错）
 
 # 远程登录
 
@@ -30,9 +32,9 @@ ssh -p 2333 <user>@<host>     #-p指定端口（更改了默认端口22时需要
 
 注意：如果省略用户名（和`@`），将会以当前用户名尝试登录ssh服务器，例如root用户执行`ssh <host>`同于`ssh root@<host>`。
 
-## 使用密钥免密码登录
+## 密钥登录
 
-### 生成和上传密钥
+使用非对称加密的密钥，可免密码登录。
 
 1. 生成密钥——生成非对称加密的密钥对
 
@@ -56,7 +58,146 @@ ssh -p 2333 <user>@<host>     #-p指定端口（更改了默认端口22时需要
 
    如要手动添加公钥：可将客户端生成的**`id_rsa.pub`**内容添加到服务端的`~/.ssh/authorized_keys`中。
 
-### ssh登录失败原因
+## 别名登录
+
+为需要经常登录的服务器设置别名，简化登录步骤。
+
+在`~/.ssh/config`（如无该文件则创建之）中配置：
+
+```shell
+Host server1 #server1为所命名的别名
+  hostname xxx.xxx.xxx.xxx #登录地址
+  user user1  #用户名
+  #port 1998  #如果修改过默认端口则指定之
+  #IdentityFile  ~/path/to/id_rsa.pub #如果要指定公钥
+  #IdentitiesOnly yes #只使用指定的公钥进行认证
+```
+
+登录时直接使用`ssh server1`即可。
+
+## 跳板登录
+
+在某些情况下，需要先登录跳板机（可能不止一个跳板机），再从跳板机登录到目标服务器：
+
+**客户端** ---> **跳板机** ---> **目标主机**
+
+可使用以下方法简化登录步骤。
+
+---
+
+以下示例中，**客户端Client**欲通过**跳板机Jump-server**用户，登录到**目标主机target-server**：
+
+sshd端口均为22，各主机使用的用户名相同（用户名一致时可不指明登录服务器的用户名，参看上文[远程登录](#远程登录)所述）。
+
+---
+
+- 分配伪终端跳转登录`-t`
+
+  ```shell
+  ssh -t <jump-server> \
+  ssh -t <target-server>
+  ```
+
+  如果以上各步骤的ssh登录都实现了ssh密钥验证，将直接登录到目标主机。如果某一步登录无密钥验证，将会提示输入密码。
+
+  密钥转发`-A`：该参数可将客户端密钥通过跳板机转发到目标服务器上
+
+  ```shell
+  ssh -A -t <jump-server> \
+  ssh -A -t <target-server>
+  ```
+
+  多个跳板机时，按顺序一一写上即可。
+
+- 跳跃登录`-J`——更为简洁的用法：
+
+  ```shell
+  ssh -J <jump-server> <target-server>
+  ```
+
+  如有多个跳板机使用`,`逗号隔开。
+
+  ```shell
+  ssh -J <jump-server1>,<jump-server2> <target-server>
+  ```
+
+- 代理命令`proxyCommand`
+
+  ```shell
+  ssh <target-server> -o ProxyCommand='ssh <jump-server> -W %h:%p'
+  ```
+
+  为了简化操作可使用[别名登录](#别名登录)：
+
+  ```shell
+  Host jump #跳板机配置
+    HostName <jump-server>
+    
+  Host target #目标主机配置
+    HostName <target-server>
+    ForwardAgent yes
+    ProxyCommand ssh jump -q -W %h:%p
+  ```
+
+  直接`ssh target`即可登录。
+
+## 保持连接
+
+在服务端或客户端设置keep-alive以保持连接。
+
+- 服务端`/etc/ssh/sshd_config`中添加
+
+  ```shell
+  ClientAliveInterval 30
+  ClientAliveCountMax 60
+  ```
+
+  每30s向连接的客户端传送信息；客户端连续60次无响应则自动关闭该连接。
+
+- 客户端`/etc/ssh/ssh_config`或用户家目录的`~/.ssh/config`中添加
+
+  ```shell
+  ServerAliveInterval 30
+  ServerAliveCountMax 60
+  ```
+
+  每30s向连接的服务端端传送信息；服务端连续60次无响应则自动关闭该连接。
+
+## 连接复用
+
+在已经连接到某个服务器的情况下，再连接该服务器时将直接从先前的连接缓存中读取信息，加快连接速度。
+
+在`/etc/ssh/ssh_config`或用户家目录的`~/.ssh/config`中添加：
+
+```shell
+ControlMaster auto
+ControlPath ~/.ssh/sockets/socket-%r@%h:%p #连接信息存储路径
+ControlPersist yes  #连接保持
+ControlPersist 1h  #连接保持时间
+```
+
+## 远程操作
+
+直接在登录命令后添加命令，可使该命令在远程主机上执行，示例：
+
+```shell
+ssh [-p port] <user>@<host> <command>
+ssh root@192.168.1.11 whoami
+
+#将本地.vimrc内容传入远程主机的.vimrc中
+ssh root@192.168.1.11 'cat > .vimrc' < .vimrc
+
+#多条命令使用引号包裹起来
+ssh 10.10.1.1 'echo `whoami` > name && mv -f name myname'
+```
+
+如果是交互式操作，例如使用vim操作远程主机的文件，配合scp使用，示例：
+
+```shell
+vim scp://<user>@<host>[:port]//path/to/file
+```
+
+## 登录失败原因
 
 提示：可以在登录命令中加入`-v`参数，从输入内容中获取信息。
 
@@ -97,113 +238,81 @@ ssh -p 2333 <user>@<host>     #-p指定端口（更改了默认端口22时需要
 
   如果无需严格的主机密钥检查，也可以将已知主机信息文件指向`/dev/null`。
 
-## 保持ssh连接
-
-在服务端或客户端设置keep-alive以保持连接。
-
-- 服务端`sshd_config`中添加
-
-  ```shell
-  ClientAliveInterval 30
-  ClientAliveCountMax 60
-  ```
-  每30s向连接的客户端传送信息；客户端连续60次无响应则自动关闭该连接。
-
-- 客户端`ssh_config`中添加
-
-  ```shell
-  ServerAliveInterval 30
-  ServerAliveCountMax 60
-  ```
-
-  每30s向连接的服务端端传送信息；服务端连续60次无响应则自动关闭该连接。
-
-# 远程操作
-
-直接在登录命令后添加命令可使该命令在远程主机上执行，示例如下：
-
-```shell
-ssh [-p port] <user>@<host> <command>
-ssh root@192.168.1.11 whoami
-ssh root@192.168.1.11 'mkdir -p .ssh && cat >> .ssh/authorized_keys' < ~/.ssh/id_rsa.pub
-```
-
-如果是交互式操作，例如使用vim操作远程主机的文件，配合scp使用，示例：
-
-```shell
-vim scp://<user>@<host>[:port]//path/to/file
-```
-
 # 端口转发（ssh隧道）
 
 > 隧道是一种把一种网络协议封装进另外一种网络协议进行传输的技术。
 
-ssh隧道又被称作ssh端口转发，因为ssh隧道**通常会绑定一个本地端口**，通过该端口的数据包都会被加密并透明地传输到远端系统。
+以下关于不同转发的论述中的三种角色：
+
+客户端：原始请求的发起者
+
+目标主机：真正的服务提供者
+
+代理：客户端与服务端（目标）的中介
+
+---
 
 - 使用1024以下的端口需要root权限。
 
-- 开启/关闭端口转发，在`sshd_config`文件根据需要设置`yes`或`no`：
+- 端口转发命令配合`-g`参数，可允许远程主机连接到建立的转发的端口，如果不使用该参数，只允许本地主机建立连接。也可在代理主机的配置文件`/etc/ssh/sshd_config`中设置：`GatewayPorts yes`，以允许远程主机建立连接。
 
-  ```shell
-  GatewayPorts yes
-  ```
+- 动态转发与本地/远程转发
 
+  **动态转发是正向代理，本地/远程转发是反向代理。**
 
-- 端口转发一般都配合`f`和`N`参数将命令放到后台并且不执行登录操作，参看[常用参数](#常用参数)。
+  **”正向“代理客户端，”反向“代理服务端。**
 
-- 在sshd的配置文件`sshd_config`中设置了`GatewayPorts yes`（或者ssh转发时添加[-g参数](#常用参数)），就可以允许其他ssh客户端连接主机时，能够直接连接到转发的端口。（否则默认只能本地主机连接到转发的端口）
+  （这里的”正向“是正向代理的简称，代理作动词，”反向“亦同）
 
-- 远程主机只是一个通常的相对概念。例如转发主机某端口到该主机另一端口也是可以的：
+  正向代理代表客户端向服务器发送请求，使真实客户端对服务器不可见。反向代理代表服务器为客户端提供服务，使真实服务器对客户端不可见。
 
-  ```shell
-  ssh -L localhost:2333:localhost:22 localhost  #将本地2333端口转发到本地22端口
-  ```
+- 本地转发和远程转发
 
-- 动态转发时正向代理，本地转发和远程转发是反向代理。
+  在本地转发和远程转发的应用中，客户端都是直接访问代理主机的端口，代理主机通过端口转发，将数据传送到真实目标主机相应的端口上。
 
-  *正向代理客户端，反向代理服务端。*
+  二者不同在于：
 
-- 本地转发和远程转发区别
+  - 执行转发命令的主机
+    - 本地转发中，执行转发命令的是**代理主机**（即所谓“本地”主机）。
+    - 远程转发中，执行转发命令的是**目标主机**（代理主机即所谓“远程”主机）
 
-  - 本地转发：转发本地端口到远程主机端口。访问本地端口即相当于访问远程主机端口。
-  - 远程转发：转发远程主机端口到本机端口。访问远程主机端口即相当于访问本地端口。
+    此外，动态端口转发中，执行转发命令的是**客户端**。
 
-  > SSH 端口转发自然需要 SSH 连接，而 SSH 连接是有方向的，从 SSH Client 到 SSH Server 。
+  - 客户端的访问方向
 
-  转发时ssh连接方向：执行转发操作的主机--->远程主机
-
-  > 如果这两个连接的**方向一致，那我们就说它是本地转发**。而如果两个方**向不一致，我们就说它是远程转发**。
-
-    访问时ssh连接方向
-
-
-    - 本地转发：访问端--->执行转发操作的主机--->远程主机
-    - 远程转发：访问端--->远程主机--->执行转发操作的主机
+    - 本地转发：**客户端** ---> **执行转发操作的主机（代理）**---> **目标**
+    - 远程转发：**客户端** ---> **远程主机（代理）** ---> **执行转发操作的主机（目标）**
 
 ## 动态端口转发（socks代理）
 
-转发本地端口到目标主机。本地的应用程序需要使用Socks协议与本地端口通讯。
+在客户端执行转发命令
 
-即用于代理访问，同时加密数据又提升了访问安全性。
+转发客户端的端口到代理主机的端口，客户端访问目标主机时，实际是经过代理主机访问目标主机。
+
+*需要手动为要使用代理的程序配置socks5代理（或设置全局的代理，可配合PAC使用）*
+
+可用于代理/加密访问。
 
 ```shell
+#使用-D参数进行动态端口转发
 ssh -D <local-port>  <user>@<ssh-server> [-p host-port]
-ssh -fDN 1080 root@192.168.1.2  #将通过1080端口的数据转发到192.168.1.2上
+#应使用示例
+ssh -fDN 1080 root@192.168.1.2
 ```
 
 - local-port：本地端口
 - user：要转发到的主机上的登录用户名
 - ssh-server：要转发到的主机地址
 
-需要手动为要使用代理的程序配置socks5代理，如果该程序无配置socks代理的选项，可尝试借助工具如proxychains或redsocks等。
-
 ## 本地端口转发
 
-将本地机(客户机)的某个端口转发到远端指定机器的指定端口。访问本地端口即相当于访问远程主机端口。
+**在代理主机执行转发命令**
+
+映射目标主机端口到本地主机（代理主机）端口，来自客户端的数据从本地主机（代理主机）端口转发到目的主机端口，访问本地主机（代理主机）的端口即相当于访问目标主机的端口。
 
 ```shell
 ssh -L [bind_address:]<local-port>:<host>:<host-port> <user>@<ssh-server>
-ssh -fDNL 5901:192.168.2.10:5900 root@192.168.2.10  #将本地5901端口数据转发到192.168.2.10:5900端口
+ssh -fCNL 5901:192.168.2.10:5900 root@192.168.2.10 #将本地5901端口数据转发到192.168.2.10:5900端口
 ```
 
 - bind-address：绑定的地址，如果不指定该地址，默认绑定在本地的回环地址（127.0.0.1）。
@@ -212,18 +321,22 @@ ssh -fDNL 5901:192.168.2.10:5900 root@192.168.2.10  #将本地5901端口数据�
 
 ## 远程端口转发
 
-将远程主机(服务器)的某个端口转发到本地端指定机器的指定端口。访问远程主机端口即相当于访问本地端口。
+**在目标主机执行转发命令**
 
-用于某些单向阻隔的内网环境，例如从外访问NAT，网络防火墙内网主机，在目标内网主机向外网主机建立一个远程转发端口，使得外网主机可以通过该端口访问该内网主机的服务。
+映射远程主机（代理主机）的端口到目标主机端口，来自客户端的数据从远程主机（代理主机）端口转发到目的主机端口，访问远程主机（代理主机）的端口即访问目标主机的端口。
+
+与本地转发不同，**目标主机主动向代理主机（远程主机）建立一个反向 SSH 隧道**，客户端通过代理上的反向隧道连接到目标主机。
 
 ```shell
 ssh -R [bind_address:]port:<host>:<host-port> <user>@<ssh-server>
-ssh -fgDNR 5900:192.168.2.10:5901 root@192.168.2.10
+ssh -fCNR 5900:192.168.2.10:5901 root@192.168.2.10
 ```
 
 参数解释参看动态转口转发。
 
-# scp远程复制
+# 文件传输
+
+## scp远程复制
 
 scp是基于ssh的远程复制，使用**类似cp命令**。基本形式：
 
@@ -250,32 +363,90 @@ scp ~/.ssh/id_rsa.pub root@ip:/root/.ssh/authorized_keys
 scp -P 999 ~/.ssh/id_rsa.pub root@ip:/root.ssh/authorized_keys
 ```
 
-# sftp传输协议
+## sftp传输协议
 
 使用sftp协议可以同ssh服务器进行文件传输，访问地址类似：
 
 > sftp://192.168.1.100:22/home/<user>/path/to/file
 
+## sshfs文件系统
+
+> SSHFS 是一个通过 SSH 挂载基于 FUSE 的文件系统的客户端程序。 
+
+需要安装有`sshfs`。
+
+挂载示例：
+
+```shell
+#sshfs [user@]host:[dir] <mountpoint> [options]
+sshfs ueser1@host1:/share /share -C -p 2333 -o allow_other
+```
+
+常用选项有：
+
+- `-C` 启用压缩
+
+- `-p` 指定端口
+
+- `-o allow_other` 允许非root用户读写
+
+
+`/etc/fastab`自动挂载示例：
+
+```shell
+user@host:/remote/folder /mount/point  fuse.sshfs noauto,x-systemd.automount,_netdev,users,idmap=user,IdentityFile=/home/user/.ssh/id_rsa,allow_other,reconnect 0 0
+```
+
+
+
+卸载示例：
+
+```shell
+#fusermount -u <mount-point>
+fusermount -u /share
+```
+
 # 服务器安全策略
 
-- 工具
-  - [denyhosts](https://github.com/denyhosts/denyhosts)
-  - [fail2ban](https://github.com/fail2ban/fail2ban)
+## 工具
 
-- 在`/var/log/secure`可查看到失败的ssh登录记录
-- 禁止指定ip登录ssh
-  - 在`/etc/hosts.deny`中添加ip，格式`sshd:ip地址`。
-  - 使用[denyhosts](https://zh.wikipedia.org/wiki/DenyHosts)工具，安装后启用`denyhosts`服务即可。
+- [denyhosts](https://github.com/denyhosts/denyhosts)
+- [fail2ban](https://github.com/fail2ban/fail2ban)
+- [sshguard](https://www.sshguard.net/)
+
+## 白名单和黑名单
+
+- 黑名单
+
+  在`/etc/hosts.deny`中添加禁止列表。
+
+- 白名单
+
+  在`/etc/hosts.allow`中添加允许列表。
 
 
 - 更改默认的22端口
   修改服务器的`/etc/ssh/sshd_config`文件中的`Port` 值为其他可用端口。
+
+- 登录记录查看
+
+  - 成功记录：`lastlog`
+
+    其保存在`/var/log/secure`（或在`/etc/log/btmp`）。
+
+  - 失败记录：`lastb`
+
+    其保存在`/etc/log/btmp`。
+
+
 - 使用非对称加密密钥
 
   ```shell
-  ssh-keygen  #或者ssh-keygen -t rsa 4096  客户机生成密钥
-  ssh-copy-d -p 23579 ip@8.8.8.8  #上传公钥到服务器（23579是端口号，8.8.8.8是ip地址）
+  ssh-keygen  #或者ssh-keygen -t rsa 4096 客户机生成密钥
+  ssh-copy-d -p 23579 ip@8.8.8.8  #上传公钥到服务
   ```
+
+  注意，dsa密钥已经证实为不安装，rsa密钥位数过低也较为不安全，推荐至少4096位。
 
 
 - 用户控制
@@ -308,9 +479,9 @@ scp -P 999 ~/.ssh/id_rsa.pub root@ip:/root.ssh/authorized_keys
 
 - > no matching key exchange method found. Their offer: diffie-hellman-group-exchange-sha1,diffie-hellman-group1-sha1
 
-  ssh server 不支持diffie-hellman-group1-sha1造成的，服务器ssh版本过低（或者说客户端ssh版本过高）
+  ssh server 不支持diffie-hellman-group1-sha1造成的，服务器ssh版本过低（或者说客户端ssh版本过高）。
 
-  升级服务端ssh或者在客户端ssh的config中添加
+  升级服务端ssh版本，或在`/etc/ssh/ssh_config`或用户家目录的`~/.ssh/config`中添加
 
   ```shell
   KexAlgorithms +diffie-hellman-group1-sha1
@@ -318,9 +489,9 @@ scp -P 999 ~/.ssh/id_rsa.pub root@ip:/root.ssh/authorized_keys
 
 - > no compatible cipher.The server supports these cipher:  aes128-ctr,aes192-ctr,aes256-ctr
 
-  ssh服务端不支持某些协议
+  ssh服务端不支持某些协议（或者说客户端ssh版本过高）。
 
-  升级服务端ssh或者在客户端ssh的config中添加
+  升级服务端ssh版本，或在`/etc/ssh/ssh_config`或用户家目录的`~/.ssh/config`中添加
 
   ```shell
   Ciphers aes128-ctr,aes192-ctr,aes256-ctr,aes128-cbc,3des-cbc,aes192-cbc,aes256-cbc
